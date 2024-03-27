@@ -1,0 +1,97 @@
+#Applying if-else conditions across multiple columns in a pandas DataFrame can be accomplished in several ways, each suitable for different scenarios. Here's how to handle complex conditions involving more than one column:
+### 1. Using `np.where`
+
+#For conditions involving multiple columns, you can still use `np.where`, possibly nesting calls for more complex logic.
+
+import numpy as np
+import pandas as pd
+
+# Example DataFrame
+df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+
+# Simple condition across multiple columns 
+df['C'] = np.where((df['A'] < 3) & (df['B'] > 4), 'Condition met', 'Condition not met')
+
+df
+Output:
+  A	B	C
+0	1	4	Condition not met
+1	2	5	Condition met
+2	3	6	Condition not met
+
+-----------------------------------------------------------------------------------------------------------
+### 2. Using `DataFrame.apply` with a lambda function
+
+#If your condition is more complex and cannot be easily vectorized, you can use `apply` with a custom function that takes a row as input.
+
+df['D'] = df.apply(lambda row: 'Condition met' if (row['A'] < 3) and (row['B'] > 4) else 'Condition not met', axis=1) 
+df
+
+Output:
+
+  A	B	C	D
+0	1	4	Condition not met	Condition not met
+1	2	5	Condition met	Condition met
+2	3	6	Condition not met	Condition not met
+
+-----------------------------------------------------------------------------------------------------------
+### 3. Using a For Loop with iterrows()
+
+#This method is generally less efficient and should be used sparingly, but it can be more readable for complex conditions.
+
+results = []
+for _, row in df.iterrows():
+    if row['A'] < 3 and row['B'] > 4:
+        results.append('Condition met')
+    else:
+        results.append('Condition not met') 
+df['E'] = results
+df
+
+Output:
+
+  A	B	C	D	E
+0	1	4	Condition not met	Condition not met	Condition not met
+1	2	5	Condition met	Condition met	Condition met
+2	3	6	Condition not met	Condition not met	Condition not met
+
+-------------------------------------------------------------------------------------------------------------
+
+
+### 4. Using `DataFrame.loc` for conditional assignments
+
+#You can use boolean indexing for complex conditions across multiple columns to assign values in a new or existing column.
+
+
+df.loc[(df['A'] < 3) & (df['B'] > 4), 'F'] = 'Condition met'
+df.loc[~((df['A'] < 3) & (df['B'] > 4)), 'F'] = 'Condition not met'
+
+------------------------------------------------------------------------------------------------------------
+### 5. Using `mask` and `where`
+
+#These methods can be used similarly to `np.where` but are methods of DataFrame and Series objects, allowing for chaining and more pandas-native operations.
+
+df['G'] = pd.Series('Condition not met', index=df.index) 
+df['G'] = df['G'].mask((df['A'] < 3) & (df['B'] > 4), 'Condition met') 
+
+#Or, inversely with `where`:
+df['H'] = pd.Series('Condition not met', index=df.index)
+df['H'] = df['H'].where(~((df['A'] < 3) & (df['B'] > 4)), 'Condition met') 
+df
+
+output:
+  A	B	C	                 D	               E	               F	              G	                H
+0	1	4	Condition not met	Condition not met	Condition not met	Condition not met	Condition not met	Condition not met
+1	2	5	Condition met	Condition met	Condition met	Condition met	Condition met	Condition met
+2	3	6	Condition not met	Condition not met	Condition not met	Condition not met	Condition not met	Condition not met
+
+------------------------------------------------------------------------------------------------------------
+### 6. Using vectorized operations for simple conditions
+
+#For conditions that can be expressed as vectorized operations (without using `apply` or loops), you can combine conditions directly.
+
+condition_met = (df['A'] < 3) & (df['B'] > 4) 
+df['I'] = 'Condition not met'
+df.loc[condition_met, 'I'] = 'Condition met'
+
+
