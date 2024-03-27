@@ -1,0 +1,42 @@
+import random
+import string
+import pandas as pd
+import re
+from openpyxl import load_workbook
+import os
+import xlwings as xw
+pd.set_option('display.max_column', None)
+
+CiphperKey=File Name ## input the path of file containing key and value column
+CiperKey=pd.read_excel(CiphperKey,sheet_name='Sheet1')
+
+#Creating Dictionary from the Cipher Keys
+Substitute_Cipher=pd.Series(CiperKey.Value2.values, index=CiperKey.Key.astype(str)).to_dict()
+Substitute_DeCipher=pd.Series(CiperKey.Key.values, index=CiperKey.Value2.astype(str)).to_dict()
+
+
+## Function to encode the data
+def substitute_cipher(client_id):
+    # Define a simple substitution dictionary
+    # Substitute each digit in the client_id
+    encoded_id = ''.join(Substitute_Cipher[digit] for digit in client_id if digit in Substitute_Cipher)
+    return encoded_id
+
+df['ID']=df['ID'].astype(str).apply(substitute_cipher)
+
+
+## Function to Decode the data:
+def substitute_DeCipher(text, mapping):
+    replaced_text=''
+    for i in range(0,len(text),2):
+        chunk=text[i:i+2]
+        #print(chunk)
+        if chunk in mapping:
+            replaced_text+=str(mapping[chunk])
+            #print(replaced_text)
+        else:
+            replaced_text+=str(chunk)
+            #print(replaced_text)
+    return replaced_text
+
+df['ID']=df['ID'].astype(str).apply(lambda x: substitute_DeCipher(x,Substitute_DeCipher))
